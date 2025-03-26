@@ -1,0 +1,3 @@
+[submodule "macos-init"]
+	path = macos-init
+	url = https://github.com/solemnwarning/macos-init.git
