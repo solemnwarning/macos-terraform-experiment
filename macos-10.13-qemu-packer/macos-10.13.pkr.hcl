@@ -30,6 +30,17 @@ variable "yq_binary_url" {
 build {
   sources = ["source.qemu.macos"]
 
+  # We need to explicitly enable TRIM support since we aren't using official Apple-approved disks.
+
+  provisioner "shell" {
+    inline = [
+      "yes | sudo trimforce enable",
+    ]
+
+    expect_disconnect = true
+    pause_after = "2m"
+  }
+
   # Download and install pre-compiled yq executable.
 
   provisioner "shell-local" {
@@ -108,11 +119,19 @@ source qemu "macos" {
     [ "-device", "isa-applesmc,osk=ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc" ],
     [ "-smbios", "type=2" ],
     [ "-cpu", "Penryn,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check" ],
+
     [ "-usb" ],
     [ "-device", "usb-kbd" ],
     [ "-device", "usb-tablet" ],
-    [ "-drive", "if=ide,format=qcow2,file=${var.base_dir}/OpenCore.qcow2" ],
-    [ "-drive", "if=ide,format=qcow2,file=${var.output_dir}/macos.qcow2,cache=unsafe,discard=unmap,detect-zeroes=unmap" ],
+
+    [ "-device", "ahci,id=ahci" ],
+
+    [ "-drive", "if=none,id=disk0,format=qcow2,file=${var.base_dir}/OpenCore.qcow2" ],
+    [ "-device", "ide-hd,drive=disk0,bus=ahci.0,rotation_rate=1" ],
+
+    [ "-drive", "if=none,id=disk1,format=qcow2,file=${var.output_dir}/macos.qcow2,cache=unsafe,discard=unmap,detect-zeroes=unmap" ],
+    [ "-device", "ide-hd,drive=disk1,bus=ahci.1,rotation_rate=1" ],
+
     [ "-drive", "if=pflash,format=raw,readonly=true,file=${var.uefi_firmware}" ],
     [ "-drive", "if=pflash,format=raw,readonly=true,file=${var.base_dir}/OVMF_VARS.fd" ],
   ]

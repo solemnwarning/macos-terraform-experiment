@@ -62,12 +62,12 @@
     </xsl:copy>
   </xsl:template>
 
-  <!-- Override default virto disk interfaces with SATA. -->
+  <!-- Override default virto disk interfaces with SATA ("SSDs" for TRIM) -->
   <xsl:template match="/domain/devices/disk/target[@dev='vda']">
-    <target dev='sda' bus='sata'/>
+    <target dev='sda' bus='sata' rotation_rate='1'/>
   </xsl:template>
   <xsl:template match="/domain/devices/disk/target[@dev='vdb']">
-    <target dev='sdb' bus='sata'/>
+    <target dev='sdb' bus='sata' rotation_rate='1'/>
   </xsl:template>
 
   <!-- Override default IDE CD interface with SATA. -->
